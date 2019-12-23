@@ -5,6 +5,10 @@
 
 static uint32_t baudrate = 0;
 static unsigned int UCA0BRW_Val = 0;
+static unsigned char UCABRF_Val = 0;
+static int16_t UCBRS_mask = 0;
+static double lookup = 0;
+
 /*------------------------------------------------------*/
 //Clock registers
 typedef static struct _CLKS
@@ -31,11 +35,25 @@ typedef static struct _UART
     volatile unsigned int *UCA0IV_ = (volatile unsigned int *) &UCA0IV;
 } UART;
 
-
+/*Begins initialization of UART configuring the pins for receiving data
+ * calling initUART, which initializes the eUSCI UART registers for receiving
+ * data based on the given parameters.
+ */
 void beginInit(uint32_t baud, unsigned int srcClk, uint32_t srcClkHz);
 
+/*Initializes eUSCI UART registers for receiving data
+ */
 static void initUART(uint32_t baud, unsigned int srcClk, uint32_t srcClkHz);
 
-static void setClk(unsigned int srcClk, uint32_t srcClkHz);
+/*Sets MCLK and SMCLK to source the DCO at 1MHz
+ */
+static void setClk();
+
+/*Returns the baudrate
+ */
+inline uint32_t getBaudrate()
+{
+    return baudrate;
+}
 
 #endif
