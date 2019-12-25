@@ -31,6 +31,7 @@ static UCBRS_Table UCBRS_Vals[] = {
                                    {0.8464, 0xDF}, {0.8572, 0xEF}, {0.8751, 0xF7},
                                    {0.9004, 0xFB}, {0.9170, 0xFD}, {0.9288, 0xFE}
                                   };
+
 void beginInit(uint32_t baud, unsigned int srcClk, uint32_t srcClkHz)
 {
     //Initialize UART pins to receive
@@ -40,6 +41,7 @@ void beginInit(uint32_t baud, unsigned int srcClk, uint32_t srcClkHz)
     //ensure pin changes take effect
     PM5CTL0 &= ~LOCKPM5;
 
+    setClk();
     baudrate = baud;
 
     initUART(baud, srcClk, srcClkHz);
@@ -51,6 +53,7 @@ static void initUART(uint32_t baud, unsigned int srcClk, uint32_t srcClkHz)
     UCA0BRW_Val = srcClkHz/(16*baud);
     UCABRF_Val = (int)(( (double)srcClkHz / (16.0*((double)baud))) - ( (double)UCA0BRW_Val)*16);
 
+    //determine first stage modulation value
     switch(UCABFR_Val)
     {
     case 0:
@@ -105,6 +108,7 @@ static void initUART(uint32_t baud, unsigned int srcClk, uint32_t srcClkHz)
         break;
     }
 
+    //second modulation stage
     //Finds the lookup value associated with the given clk frequency and baudrate
     lookup = (double)srcClkHz/((double)baud);
     lookup = lookup - (int)lookup;
@@ -119,7 +123,6 @@ static void initUART(uint32_t baud, unsigned int srcClk, uint32_t srcClkHz)
             UCBRS_mask = UCBRS_Vals[i].UCBRSx;
         }
     }
-
     if(UCBRS_mask == -1)
     {
         UCBRS_mask = 0xFE;
@@ -139,7 +142,6 @@ static void initUART(uint32_t baud, unsigned int srcClk, uint32_t srcClkHz)
 
     *(UART.UCA0MCTLW_) = UCOS16 | UCBRF_Val | (UCBRS_mask << 8);
 
-    //
     *(UART.UCA0CTLW0_) &= ~(UCSWRST);
 
     //Set interrupt for UART receive
@@ -148,18 +150,30 @@ static void initUART(uint32_t baud, unsigned int srcClk, uint32_t srcClkHz)
 
 static void setClk()
 {
-    *(CLKS.CSCTL0_H_) = CSKEY_H;                    //unlock CS registers
-    *(CLKS.CSCTL1_) = DCOFSEL_0;                    //use DCO at 1MHz
-    *(CLKS.CSCTL2_) = SELS__DCOCLK | SELM__DCOCLK;  //source MCLK and SMCLK with the DCO
-    *(CLKS.CSCTL3_) = DIVS__1 | DIVM__1;            //set the prescaler to divide by 1
+    //unlock CS registers
+    *(CLKS.CSCTL0_H_) = CSKEY_H;
+    //use DCO at 1MHz
+    *(CLKS.CSCTL1_) = DCOFSEL_0;
+    //source MCLK and SMCLK with the DCO and source ACLK with VLO
+    *(CLKS.CSCTL2_) = SELA__VLOCLK | SELS__DCOCLK | SELM__DCOCLK;
+    //set the prescaler to divide by 1
+    *(CLKS.CSCTL3_) = DIVA__1 | DIVS__1 | DIVM__1;
 
     //calculation for cycle delays. k cycles = 20 cycles buffer + (10us / (1/n MHz))
     //delay by ~10us per device errata
     __delay_cycles(30);
 
-    *(CLKS.CSCTL0_H_) &= ~CSKEY_H;                  //lock the CS registers
+    //lock the CS registers
+    *(CLKS.CSCTL0_H_) &= ~CSKEY_H;
 }
 
+void read(uint8_t *ch)
+{
+    //place UCA0RXBUF contents into buffer
+    *ch = *(UART.UCA0RXBUF_);
+    //clear interrupt flags
+    *(UART.UCA0IFG_) = 0;
+}
 
 
 

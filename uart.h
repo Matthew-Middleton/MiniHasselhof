@@ -49,6 +49,33 @@ static void initUART(uint32_t baud, unsigned int srcClk, uint32_t srcClkHz);
  */
 static void setClk();
 
+/*Checks whether eUSCI_A is currently tranmitting/receiving
+ * Returns 1 if transmitting/receiving, 0 if not
+ */
+inline uint8_t isInProgress()
+{
+    return *(UART.UCA0STATW_) & UCBUSY;
+}
+/*Checks whether eUSCI_A has received a full character
+ * Returns 1 if yes, 0 if not
+ */
+inline uint8_t isFull()
+{
+    return *(UART.UCA0IFG_) & UCRXIFG;
+}
+
+/*Checks whether eUSCI_A has received a start bit
+ * Returns 1 if yes, 0 if not
+ */
+inline uint8_t startRead()
+{
+    return *(UART.UCA0IFG_) & UCSTTIFG;
+}
+
+/*Reads from the UCA0RXBUF and places the contents into given character
+ */
+void read(uint8_t *ch);
+
 /*Returns the baudrate
  */
 inline uint32_t getBaudrate()
