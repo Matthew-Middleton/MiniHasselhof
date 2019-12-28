@@ -131,48 +131,48 @@ static void initUART(uint32_t baud, unsigned int srcClk, uint32_t srcClkHz)
     //Sets eUSCI to use no parity, send LSB first, use 8-bits for the packet
     //with one stop bit in UART mode. This will be done in asynchronous mode
     //using SMCLK. Software resets enabled to configure.
-    *(UART.UCA0CTLW0_) = UCSWRST | srcClk;
+    *UCA0CTLW0_ = UCSWRST | srcClk;
 
     //Sets glitch time to 2ns. Anything received that is below this glitch period
     //is considered erroneous and discarded.
-    *(UART.UCA0CTLW1_) = UCGLIT_0;
+    *UCA0CTLW1_ = UCGLIT_0;
 
     //Sets the baudrate calculation
-    *(UART.UCA0BRW_) = UCA0BRW_Val;
+    *UCA0BRW_ = UCA0BRW_Val;
 
-    *(UART.UCA0MCTLW_) = UCOS16 | UCBRF_Val | (UCBRS_mask << 8);
+    *UCA0MCTLW_ = UCOS16 | UCBRF_Val | (UCBRS_mask << 8);
 
-    *(UART.UCA0CTLW0_) &= ~(UCSWRST);
+    *UCA0CTLW0_ &= ~(UCSWRST);
 
     //Set interrupt for UART receive
-    *(UART.UCA0IE_) = UCRXIE;
+    *UCA0IE_ = UCRXIE;
 }
 
 static void setClk()
 {
     //unlock CS registers
-    *(CLKS.CSCTL0_H_) = CSKEY_H;
+    *CSCTL0_H_ = CSKEY_H;
     //use DCO at 1MHz
-    *(CLKS.CSCTL1_) = DCOFSEL_0;
+    *CSCTL1_ = DCOFSEL_0;
     //source MCLK and SMCLK with the DCO and source ACLK with VLO
-    *(CLKS.CSCTL2_) = SELA__VLOCLK | SELS__DCOCLK | SELM__DCOCLK;
+    *CSCTL2_ = SELA__VLOCLK | SELS__DCOCLK | SELM__DCOCLK;
     //set the prescaler to divide by 1
-    *(CLKS.CSCTL3_) = DIVA__1 | DIVS__1 | DIVM__1;
+    *CSCTL3_ = DIVA__1 | DIVS__1 | DIVM__1;
 
     //calculation for cycle delays. k cycles = 20 cycles buffer + (10us / (1/n MHz))
     //delay by ~10us per device errata
     __delay_cycles(30);
 
     //lock the CS registers
-    *(CLKS.CSCTL0_H_) &= ~CSKEY_H;
+    *CSCTL0_H_ &= ~CSKEY_H;
 }
 
 void read(uint8_t *ch)
 {
-    //place UCA0RXBUF contents into buffer
-    *ch = *(UART.UCA0RXBUF_);
+    //place UCA0RXBUF contents into ch
+    *ch = *UCA0RXBUF_;
     //clear interrupt flags
-    *(UART.UCA0IFG_) = 0;
+    *UCA0IFG_ = 0;
 }
 
 

@@ -11,29 +11,23 @@ static double lookup = 0;
 
 /*------------------------------------------------------*/
 //Clock registers
-typedef static struct _CLKS
-{
-    volatile unsigned char *CSCTL0_H_ = CSCTL0_H;
-    volatile unsigned int *CSCTL1_ = CSCTL1;
-    volatile unsigned int *CSCTL2_ = CSCTL2;
-    volatile unsigned int *CSCTL3_ = CSCTL3;
-} CLKS;
+volatile unsigned char *CSCTL0_H_ = CSCTL0_H;
+volatile unsigned int *CSCTL1_ = CSCTL1;
+volatile unsigned int *CSCTL2_ = CSCTL2;
+volatile unsigned int *CSCTL3_ = CSCTL3;
 
 /*------------------------------------------------------*/
 //eUSCI UART registers
-typedef static struct _UART
-{
-    volatile unsigned int *UCA0CTLW0_ = (volatile unsigned int *) &UCA0CTLW0;
-    volatile unsigned int *UCA0CTLW1_ = (volatile unsigned int *) &UCA0CTLW1;
-    volatile unsigned int *UCA0BRW_ = (volatile unsigned int *) &UCA0BRW;
-    volatile unsigned int *UCA0MCTLW_ = (volatile unsigned int *) &UCA0MCTLW;
-    volatile unsigned int *UCA0STATW_ = (volatile unsigned int *) &UCA0STATW;
-    volatile unsigned int *UCA0RXBUF_ = (volatile unsigned int *) &UCA0RXBUF;
-    volatile unsigned int *UCA0TXBUF_ = (volatile unsigned int *) &UCA0TXBUF;
-    volatile unsigned int *UCA0IE_ = (volatile unsigned int *) &UCA0IE;
-    volatile unsigned int *UCA0IFG_ = (volatile unsigned int *) &UCA0IFG;
-    volatile unsigned int *UCA0IV_ = (volatile unsigned int *) &UCA0IV;
-} UART;
+volatile unsigned int *UCA0CTLW0_ = (volatile unsigned int *) &UCA0CTLW0;
+volatile unsigned int *UCA0CTLW1_ = (volatile unsigned int *) &UCA0CTLW1;
+volatile unsigned int *UCA0BRW_ = (volatile unsigned int *) &UCA0BRW;
+volatile unsigned int *UCA0MCTLW_ = (volatile unsigned int *) &UCA0MCTLW;
+volatile unsigned int *UCA0STATW_ = (volatile unsigned int *) &UCA0STATW;
+volatile unsigned int *UCA0RXBUF_ = (volatile unsigned int *) &UCA0RXBUF;
+volatile unsigned int *UCA0TXBUF_ = (volatile unsigned int *) &UCA0TXBUF;
+volatile unsigned int *UCA0IE_ = (volatile unsigned int *) &UCA0IE;
+volatile unsigned int *UCA0IFG_ = (volatile unsigned int *) &UCA0IFG;
+volatile unsigned int *UCA0IV_ = (volatile unsigned int *) &UCA0IV;
 
 /*Begins initialization of UART configuring the pins for receiving data
  * calling initUART, which initializes the eUSCI UART registers for receiving
@@ -54,14 +48,14 @@ static void setClk();
  */
 inline uint8_t isInProgress()
 {
-    return *(UART.UCA0STATW_) & UCBUSY;
+    return *UCA0STATW_ & UCBUSY;
 }
 /*Checks whether eUSCI_A has received a full character
  * Returns 1 if yes, 0 if not
  */
 inline uint8_t isFull()
 {
-    return *(UART.UCA0IFG_) & UCRXIFG;
+    return *UCA0IFG_ & UCRXIFG;
 }
 
 /*Checks whether eUSCI_A has received a start bit
@@ -69,7 +63,7 @@ inline uint8_t isFull()
  */
 inline uint8_t startRead()
 {
-    return *(UART.UCA0IFG_) & UCSTTIFG;
+    return *UCA0IFG_ & UCSTTIFG;
 }
 
 /*Reads from the UCA0RXBUF and places the contents into given character
