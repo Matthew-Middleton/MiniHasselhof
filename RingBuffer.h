@@ -10,16 +10,23 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-static uint8_t *ring_buffer = NULL;
 static size_t head = 0;
 static size_t tail = 0;
-static uint8_t full = 0;
 static const size_t max_size;
+static uint8_t *ring_buffer = NULL;
+static uint8_t full = 0;
 
+/*Initializes the ring buffer by assigning the given buffer to the internal
+ * ring buffer and setting the max size that the buffer can hold
+ */
 void initRingBuff(uint8_t *buffer, size_t size);
 
+/*Places the given data into the ring buffer
+ */
 void put(uint8_t data);
 
+/*Retrieves the data from the ring buffer
+ */
 uint8_t get(void);
 
 /*Sets the buffer to a state where it may be considered empty

@@ -11,11 +11,12 @@ void initRingBuff(uint8_t *buffer, size_t size)
 {
     ring_buffer = buffer;
     max_size = size;
+    reset();
 }
 
 void put(uint8_t data)
 {
-    ring_buffer[head] = data;
+    (*ring_buffer)[head] = data;
 
     if(full)
     {
@@ -29,7 +30,7 @@ void put(uint8_t data)
 
 uint8_t get(void)
 {
-    uint8_t val = ring_buffer[tail];
+    uint8_t val = (*ring_buffer)[tail];
 
     full = 0;
     tail = (tail+1) % max_size;
