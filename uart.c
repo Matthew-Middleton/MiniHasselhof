@@ -1,5 +1,6 @@
 
 #include "uart.h"
+#include "RingBuffer.h"
 
 //Baud Rate calculation:
 //SourceClk/(16*desiredBaud)
@@ -32,7 +33,7 @@ static UCBRS_Table UCBRS_Vals[] = {
                                    {0.9004, 0xFB}, {0.9170, 0xFD}, {0.9288, 0xFE}
                                   };
 
-void beginInit(uint32_t baud, unsigned int srcClk, uint32_t srcClkHz)
+void beginInit(uint32_t baud, unsigned int srcClk, uint32_t srcClkHz, uint8_t *buffer, int buff_size)
 {
     //Initialize UART pins to receive
     P6DIR = BIT1;
@@ -45,6 +46,7 @@ void beginInit(uint32_t baud, unsigned int srcClk, uint32_t srcClkHz)
     baudrate = baud;
 
     initUART(baud, srcClk, srcClkHz);
+    initRingBuff(buffer, buff_size);
 }
 
 static void initUART(uint32_t baud, unsigned int srcClk, uint32_t srcClkHz)
@@ -148,7 +150,7 @@ static void initUART(uint32_t baud, unsigned int srcClk, uint32_t srcClkHz)
     *UCA0IE_ = UCRXIE;
 }
 
-static void setClk()
+static void setClk(void)
 {
     //unlock CS registers
     *CSCTL0_H_ = CSKEY_H;
@@ -167,16 +169,38 @@ static void setClk()
     *CSCTL0_H_ &= ~CSKEY_H;
 }
 
-void read(uint8_t *ch)
+uint8_t read()
 {
-    //place UCA0RXBUF contents into ch
-    *ch = *UCA0RXBUF_;
-    //clear interrupt flags
-    *UCA0IFG_ = 0;
+    return get();
 }
 
+size_t readAndSet(uint8_t *buffer, size_t size)
+{
+    size_t current = 0;
+    while(!empty() && current<size)
+    {
+        buffer[current] = get();
+        current++;
+    }
+    return current;
+}
 
-
+#pragma vector=USCIA0_VECTOR
+__interrupt void USCIA0_ISR()
+{
+    switch(__even_in_range((*UCA0IV_), USCI_UART_UCSTTIFG))
+    {
+        case USCI_NONE:             //no interrupt pending
+            break;
+        case USCI_UART_UCRXIFG:     //receive buffer full
+            put(*UCA0RXBUF_);
+            break;
+        case USCI_UART_UCSTTIFG:    //start bit received
+            break;
+        default:
+            break;
+    }
+}
 
 
 
