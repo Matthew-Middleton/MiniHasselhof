@@ -13,6 +13,9 @@ int main(void)
 	beginInit(rate, UCSSEL_2, 1000000, buff, BUFFSIZE);
 
 	PM5CTL0 &= ~LOCKLPM5;
+
+	USCIA0_ISR();
+	_bis_SR_register(GIE);
 	//program loop
 	for(;;)
 	{
