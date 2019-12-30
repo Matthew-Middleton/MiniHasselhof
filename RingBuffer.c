@@ -11,7 +11,6 @@ void initRingBuff(uint8_t *buffer, size_t size)
 {
     ring_buffer = buffer;
     max_size = size;
-    reset();
 }
 
 void put(uint8_t data)
