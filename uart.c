@@ -1,6 +1,5 @@
 
 #include "uart.h"
-#include "RingBuffer.h"
 
 //Baud Rate calculation:
 //SourceClk/(16*desiredBaud)
@@ -155,7 +154,7 @@ static void setClk(void)
     //unlock CS registers
     *CSCTL0_H_ = CSKEY_H;
     //use DCO at 1MHz
-    *CSCTL1_ = DCOFSEL_0;
+    *CSCTL1_ = DCOFSEL_4;
     //source MCLK and SMCLK with the DCO and source ACLK with VLO
     *CSCTL2_ = SELA__VLOCLK | SELS__DCOCLK | SELM__DCOCLK;
     //set the prescaler to divide by 1
@@ -183,6 +182,25 @@ size_t readAndSet(uint8_t *buffer, size_t size)
         current++;
     }
     return current;
+}
+
+void endUART(void)
+{
+    unsigned int dummy;
+    *UCA0IE_ = 0;
+
+    P6OUT &= ~BIT1;
+    P6DIR &= ~BIT1;
+
+    PM5CTL0 &= ~LOCKPM5;
+
+    baudrate = 0;
+
+    *UCA0CTLW0_ = UCSWRST;
+    *UCA0BRW_ = 0;
+    *UCA0MCTLW_ = 0;
+    dummy = *UCA0RXBUF_;
+    reset();
 }
 
 #pragma vector=USCIA0_VECTOR

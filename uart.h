@@ -2,6 +2,7 @@
 #define UART_H
 #include <msp430.h>
 #include <stdint.h>
+#include "RingBuffer.h"
 
 static uint32_t baudrate = 0;
 static unsigned int UCA0BRW_Val = 0;
@@ -60,6 +61,13 @@ uint8_t read(void);
  */
 size_t readAndSet(uint8_t *buffer, size_t size);
 
+void endUART(void);
+
+inline size_t available(void)
+{
+    size();
+}
+
 /*Returns the baudrate
  */
 inline uint32_t getBaudrate(void)
@@ -67,4 +75,14 @@ inline uint32_t getBaudrate(void)
     return baudrate;
 }
 
+inline void clear(void)
+{
+    reset();
+}
+
 #endif
+
+
+
+
+
